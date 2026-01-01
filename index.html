@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Image OCR</title>
+    <script>
+        window.onerror = function (msg, url, line) {
+            alert("Error: " + msg + "\nLine: " + line);
+            return false;
+        };
+    </script>
+    <meta name="description"
+        content="Extract text from images using Google's Gemini AI. Upload images or paste Google Drive links to get instant OCR results with token estimation.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Firebase SDK (Modular) -->
+    <script type="importmap">
+      {
+        "imports": {
+          "firebase/app": "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js",
+          "firebase/firestore": "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js",
+          "firebase/storage": "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js"
+        }
+      }
+    </script>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar: History -->
+        <aside class="sidebar" id="historySidebar">
+            <div class="sidebar-header">
+                <h2>History</h2>
+                <button id="toggleHistoryBtn" class="btn-icon mobile-only">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="search-container">
+                <input type="text" id="historySearch" placeholder="Search saved text...">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
+                </svg>
+            </div>
+
+            <div class="history-list" id="historyList">
+                <!-- History items will be injected here -->
+                <div class="empty-state">
+                    <p>No history yet</p>
+                    <small>Scans will appear here</small>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="db-status" id="dbStatus">
+                    <svg class="btn-icon-left" viewBox="0 0 24 24" fill="none" stroke="#43e97b" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    DB Connected
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-wrapper">
+            <div class="container">
+                <header>
+                    <h1>
+                        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        Gemini Image OCR
+                    </h1>
+                    <p class="subtitle">Extract text from images with AI-powered precision</p>
+                </header>
+
+                <!-- Firebase Config Modal/Card (Hidden by default) -->
+                <div id="firebaseConfigModal" class="modal hidden">
+                    <div class="modal-content card">
+                        <div class="modal-header">
+                            <h2>🔥 Firebase Configuration</h2>
+                            <button id="closeFirebaseConfig" class="btn-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 6L6 18M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="modal-description">Connecting to Firebase enables saving your scan history.</p>
+
+                        <div class="input-group">
+                            <label>API Key</label>
+                            <input type="text" id="fbApiKey" placeholder="AIza..." autocomplete="off">
+                        </div>
+                        <div class="input-group">
+                            <label>Auth Domain</label>
+                            <input type="text" id="fbAuthDomain" placeholder="project-id.firebaseapp.com">
+                        </div>
+                        <div class="input-group">
+                            <label>Project ID</label>
+                            <input type="text" id="fbProjectId" placeholder="project-id">
+                        </div>
+                        <div class="input-group">
+                            <label>Storage Bucket</label>
+                            <input type="text" id="fbStorageBucket" placeholder="project-id.firebasestorage.app">
+                        </div>
+                        <div class="input-group">
+                            <label>Messaging Sender ID</label>
+                            <input type="text" id="fbMessagingSenderId">
+                        </div>
+                        <div class="input-group">
+                            <label>App ID</label>
+                            <input type="text" id="fbAppId">
+                        </div>
+
+                        <button id="saveFirebaseConfig" class="btn btn-primary">Connect & Save</button>
+                    </div>
+                </div>
+
+                <main class="main-grid" id="mainGrid">
+                    <!-- Left Column: Upload & Configuration & Preview -->
+                    <div class="left-column">
+                        <!-- API Key Configuration -->
+                        <section class="card api-config" id="apiConfigSection">
+                            <h2>🔑 API Configuration</h2>
+                            <div class="input-group">
+                                <label for="apiKeyInput">Gemini API Key</label>
+                                <div class="api-key-wrapper">
+                                    <input type="password" id="apiKeyInput" placeholder="Enter your Gemini API key"
+                                        autocomplete="off">
+                                    <button type="button" id="toggleApiKey" class="btn-icon" title="Toggle visibility">
+                                        <svg class="eye-icon" viewBox="0 0 24 24" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <button type="button" id="saveApiKey" class="btn btn-primary">Save API Key</button>
+                                <p class="help-text">Get your API key from <a
+                                        href="https://aistudio.google.com/app/apikey" target="_blank"
+                                        rel="noopener">Google AI Studio</a></p>
+                            </div>
+                        </section>
+
+                        <!-- Image Upload Section -->
+                        <section class="card upload-section" id="uploadSection">
+                            <h2>📤 Upload Image</h2>
+                            <div class="upload-area" id="uploadArea">
+                                <input type="file" id="fileInput" accept="image/*" hidden>
+                                <div class="upload-content">
+                                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <p class="upload-text">Drag & drop an image here</p>
+                                    <p class="upload-subtext">or</p>
+                                    <button type="button" class="btn btn-secondary" id="browseBtn">Browse Files</button>
+                                    <p class="upload-formats">Supports: PNG, JPG, JPEG, WebP, GIF</p>
+                                </div>
+                            </div>
+
+                            <div class="divider">
+                                <span>OR</span>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="driveLink">Google Drive Link</label>
+                                <input type="url" id="driveLink" placeholder="https://drive.google.com/file/d/...">
+                                <p class="help-text">Paste a Google Drive share link to a screenshot or image</p>
+                            </div>
+                        </section>
+
+                        <!-- Image Preview Section (Visible after upload) -->
+                        <section class="card preview-card hidden" id="previewSection">
+                            <h2>🖼️ Image Preview</h2>
+                            <div class="preview-container">
+                                <img id="imagePreview" alt="Preview">
+                                <button type="button" class="btn-remove" id="removeImage" title="Remove image">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Token Estimation -->
+                            <div class="token-section hidden" id="tokenSection">
+                                <h2>📊 Token Estimation</h2>
+                                <div class="token-info">
+                                    <div class="token-item">
+                                        <span class="token-label">Estimated Tokens:</span>
+                                        <span class="token-value" id="tokenCount">-</span>
+                                    </div>
+                                    <div class="token-item">
+                                        <span class="token-label">Image Size:</span>
+                                        <span class="token-value" id="imageSize">-</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-large" id="extractBtn">
+                                    <svg class="btn-icon-left" viewBox="0 0 24 24" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    Extract Text
+                                </button>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Right Column: Results (Visible after extraction) -->
+                    <div class="right-column hidden" id="resultsColumn">
+                        <!-- Results Section -->
+                        <section class="card results-card" id="resultsSection">
+                            <div class="results-header">
+                                <h2>✨ Extracted Text</h2>
+                                <div class="results-actions">
+                                    <button type="button" class="btn btn-primary btn-small" id="startOverBtn"
+                                        title="Scan another image">
+                                        <svg class="btn-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                            <path d="M3 3v5h5" />
+                                        </svg>
+                                        Start New Scan
+                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-small" id="copyBtn">
+                                        <svg class="btn-icon-left" viewBox="0 0 24 24" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round" />
+                                        </svg>
+                                        Copy
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="results-content" id="resultsContent"></div>
+
+                            <!-- Loading Overlay -->
+                            <div class="loading-wrapper hidden" id="loadingSection">
+                                <div class="loading-spinner"></div>
+                                <p class="loading-text">Analyzing image with Gemini AI...</p>
+                            </div>
+                        </section>
+
+                        <!-- Error Section -->
+                        <section class="card error-section hidden" id="errorSection">
+                            <div class="error-content">
+                                <svg class="error-icon" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <h3>Error</h3>
+                                <p id="errorMessage"></p>
+                                <button type="button" class="btn btn-secondary" id="dismissError">Dismiss</button>
+                            </div>
+                        </section>
+                    </div>
+                </main>
+
+                <footer>
+                    <p>Powered by <strong>Google Gemini</strong></p>
+                    <p class="footer-note">Keys are stored locally in your browser session</p>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Script (Module) -->
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
