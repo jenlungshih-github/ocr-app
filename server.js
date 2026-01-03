@@ -33,7 +33,10 @@ app.get('/health', (req, res) => {
 
 // Config check
 app.get('/api/config', (req, res) => {
-    const apiKey = getCleanApiKey(process.env.GOOGLE_GENAI_API_KEY);
+    const rawKey = process.env.GOOGLE_GENAI_API_KEY;
+    const apiKey = getCleanApiKey(rawKey);
+    console.log(`[Config Check] Raw key exists: ${!!rawKey}, Clean key exists: ${!!apiKey}`);
+
     res.json({
         hasApiKey: !!apiKey,
         isProduction: process.env.NODE_ENV === 'production',
@@ -58,10 +61,12 @@ function getCleanApiKey(key) {
 
 // Gemini API Endpoint
 app.post('/api/extract', async (req, res) => {
+    console.log('[Extract Request] Processing new extraction request...');
     const { imageData, mimeType, model = 'gemini-1.5-flash' } = req.body;
     const apiKey = getCleanApiKey(process.env.GOOGLE_GENAI_API_KEY);
 
     if (!apiKey) {
+        console.error('[Extract Request] FAILED: GOOGLE_GENAI_API_KEY is not set.');
         return res.status(500).json({ error: { message: 'GOOGLE_GENAI_API_KEY is not set on the server.' } });
     }
 

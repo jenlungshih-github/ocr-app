@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load API key from local storage
 function loadApiKey() {
     const savedKey = localStorage.getItem('gemini_api_key');
+    console.log("Local API key loaded:", !!savedKey);
     if (savedKey) {
         apiKeyInput.value = savedKey;
         apiConfigSection.style.display = 'none';
@@ -107,6 +108,7 @@ async function checkServerConfig() {
     try {
         const response = await fetch('/api/config');
         const config = await response.json();
+        console.log("Server Config Response:", config);
         console.log("Server Config Response:", config);
 
         if (config.version) {
@@ -730,6 +732,10 @@ function clearImage() {
 // Extract text using Gemini API
 async function extractText() {
     const apiKey = getApiKey();
+    console.log("Extraction started. State:", {
+        localApiKey: !!apiKey,
+        serverHasApiKey: serverHasApiKey
+    });
 
     if (!apiKey && !serverHasApiKey) {
         showError('Please enter your Gemini API key first');
