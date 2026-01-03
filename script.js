@@ -452,7 +452,13 @@ function saveApiKeyToStorage() {
 }
 
 function getApiKey() {
-    let apiKey = process.env.GOOGLE_GENAI_API_KEY || localStorage.getItem('gemini_api_key') || apiKeyInput.value.trim();
+    // Check if the backend has the API key (which is preferred in production)
+    // If process.env.GOOGLE_GENAI_API_KEY is available (injected by Vite or present in environment), we use it.
+    // Otherwise, we fallback to localStorage or manual input.
+
+    // Note: In the new Express architecture, the browser doesn't STRICTLY need the key
+    // if the backend is handling the calls, but we keep this for local dev/overrides.
+    let apiKey = (typeof process !== 'undefined' && process.env?.GOOGLE_GENAI_API_KEY) || localStorage.getItem('gemini_api_key') || apiKeyInput.value.trim();
 
     // Robust key parsing: handle potential accidental duplication/concatenation
     if (apiKey && apiKey.length === 78) {
@@ -706,36 +712,17 @@ async function extractText() {
     mainGrid.classList.add('split-view');
 
     try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [
-                                {
-                                    text: 'Extract all text from this image. Provide the text exactly as it appears, maintaining the original formatting and structure as much as possible. If there is no text in the image, say "No text found in image".'
-                                },
-                                {
-                                    inline_data: {
-                                        mime_type: currentImage.type,
-                                        data: currentImageData
-                                    }
-                                }
-                            ]
-                        }
-                    ],
-                    generationConfig: {
-                        temperature: 0.1,
-                        maxOutputTokens: 2048,
-                    }
-                })
-            }
-        );
+        const response = await fetch('/api/extract', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                imageData: currentImageData,
+                mimeType: currentImage.type,
+                model: selectedModel
+            })
+        });
 
         if (!response.ok) {
             const error = await response.json();
@@ -743,7 +730,7 @@ async function extractText() {
         }
 
         const data = await response.json();
-        const extractedText = data.candidates[0]?.content?.parts[0]?.text || 'No text extracted';
+        const extractedText = data.text || 'No text extracted';
 
         // Show results
         loadingSection.classList.add('hidden');
@@ -781,63 +768,25 @@ async function handleAIGenerate() {
     aiGenBtn.disabled = true;
 
     try {
-        const systemInstruction = `
-            You are an expert prompt engineer for "Nanobana Pro" and other high-end image generation models.
-            Your task is to take extracted text (from an OCR scan) and transform it into a highly detailed, artistic, and creative image generation prompt.
-            
-            Strictly return a JSON object with the following fields:
-            - title: A creative title for the image in Traditional Chinese.
-            - description: A brief, artistic description of the scene in Traditional Chinese.
-            - prompt: A detailed English prompt for image generation.
-            - tags: An array of 5-8 relevant creative tags.
-
-            Analyze the tone, subject, and keywords of the text provided to inspire the scene.
-        `;
-
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [
-                                {
-                                    text: `${systemInstruction}\n\nExtracted Text to analyze:\n${text}`
-                                }
-                            ]
-                        }
-                    ],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 2048,
-                        response_mime_type: "application/json"
-                    }
-                })
-            }
-        );
+        const response = await fetch('/api/generate-prompt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: text,
+                model: selectedModel
+            })
+        });
 
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.error?.message || 'API request failed');
         }
 
-        const data = await response.json();
-        const resultString = data.candidates[0]?.content?.parts[0]?.text || '{}';
+        const result = await response.json();
 
-        // Parse JSON safely
-        let result;
-        try {
-            // Clean up potentially included markdown backticks
-            const jsonStr = resultString.replace(/```json/g, '').replace(/```/g, '').trim();
-            result = JSON.parse(jsonStr);
-        } catch (e) {
-            console.error("JSON parse failed", resultString);
-            throw new Error("Failed to parse AI response as JSON");
-        }
+        // Result is already parsed JSON from the backend
 
         // Display results
         aiTitle.textContent = result.title || 'Untitled';
