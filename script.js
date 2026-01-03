@@ -45,6 +45,7 @@ const errorMessage = document.getElementById('errorMessage');
 const dismissError = document.getElementById('dismissError');
 const apiConfigSection = document.getElementById('apiConfigSection');
 const uploadSection = document.getElementById('uploadSection');
+const apiStatus = document.getElementById('apiStatus');
 
 // Firebase UI Elements
 const configureFirebaseBtn = document.getElementById('configureFirebaseBtn');
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadApiKey();
     setupEventListeners();
     initFirebase(); // Try to init if config exists
+    checkServerConfig();
 
     if (getApiKey()) {
         fetchModels();
@@ -92,6 +94,31 @@ function loadApiKey() {
     if (savedKey) {
         apiKeyInput.value = savedKey;
         apiConfigSection.style.display = 'none';
+        if (apiStatus) {
+            apiStatus.classList.remove('hidden');
+        }
+    }
+}
+
+// Check if API key is configured on the server
+async function checkServerConfig() {
+    try {
+        const response = await fetch('/api/config');
+        const config = await response.json();
+
+        if (config.hasApiKey) {
+            console.log("API Key found on server.");
+            // Hide config section if key is on server
+            apiConfigSection.style.display = 'none';
+            // Show status
+            if (apiStatus) {
+                apiStatus.classList.remove('hidden');
+            }
+            // If we didn't have models yet, fetch them
+            fetchModels();
+        }
+    } catch (error) {
+        console.error("Failed to check server config:", error);
     }
 }
 
@@ -447,6 +474,9 @@ function saveApiKeyToStorage() {
 
     localStorage.setItem('gemini_api_key', key);
     apiConfigSection.style.display = 'none';
+    if (apiStatus) {
+        apiStatus.classList.remove('hidden');
+    }
     showSuccess('API key saved successfully!');
     fetchModels();
 }

@@ -18,6 +18,15 @@ app.get('/health', (req, res) => {
     res.status(200).send('OK');
 });
 
+// Config check
+app.get('/api/config', (req, res) => {
+    const apiKey = getCleanApiKey(process.env.GOOGLE_GENAI_API_KEY);
+    res.json({
+        hasApiKey: !!apiKey,
+        isProduction: process.env.NODE_ENV === 'production'
+    });
+});
+
 // Robust key parsing logic
 function getCleanApiKey(key) {
     if (!key) return null;

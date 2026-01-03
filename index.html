@@ -52,12 +52,21 @@
             </div>
 
             <div class="sidebar-footer">
-                <div class="db-status" id="dbStatus">
-                    <svg class="btn-icon-left" viewBox="0 0 24 24" fill="none" stroke="#43e97b" stroke-width="2">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                        <polyline points="22 4 12 14.01 9 11.01" />
-                    </svg>
-                    DB Connected
+                <div class="status-container">
+                    <div class="db-status" id="dbStatus">
+                        <svg class="btn-icon-left" viewBox="0 0 24 24" fill="none" stroke="#43e97b" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                        DB Connected
+                    </div>
+                    <div class="api-status hidden" id="apiStatus">
+                        <svg class="btn-icon-left" viewBox="0 0 24 24" fill="none" stroke="#43e97b" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                        API Connected
+                    </div>
                 </div>
             </div>
         </aside>

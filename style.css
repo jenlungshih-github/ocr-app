@@ -220,7 +220,14 @@ body {
     border-top: 1px solid var(--border-color);
 }
 
-.db-status {
+.status-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.db-status,
+.api-status {
     display: flex;
     align-items: center;
     justify-content: center;
