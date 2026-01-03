@@ -109,6 +109,36 @@ A modern web application for extracting text from images using Google's Gemini A
    firebase deploy --only hosting
    ```
 
+## Production Deployment & Secret Management
+
+Deploying this application to Firebase App Hosting requires configuration for the `GOOGLE_GENAI_API_KEY` to ensure the AI features work in a production environment.
+
+The application is configured in `apphosting.yaml` to use a secret named `GOOGLE_GENAI_API_KEY`. This secret must be created in Google Cloud Secret Manager and the App Hosting backend needs to be granted access to it.
+
+### Secret Setup Steps
+
+1.  **Login to Firebase**:
+    ```bash
+    firebase login --reauth
+    ```
+
+2.  **Set the Secret**: This command will create the secret if it doesn't exist or update it. You will be prompted to paste your API key.
+    ```bash
+    npx firebase apphosting:secrets:set GOOGLE_GENAI_API_KEY
+    ```
+
+3.  **Grant Access to the Backend**: You need to grant the App Hosting backend permission to access the secret. Replace `ocr-app` with your backend ID if it's different (you can find it with `npx firebase apphosting:backends:list`).
+    ```bash
+    npx firebase apphosting:secrets:grantaccess GOOGLE_GENAI_API_KEY --backend=ocr-app
+    ```
+
+4.  **Deploy**:
+    ```bash
+    git add .
+    git commit -m "Configure App Hosting secrets"
+    git push origin main
+    ```
+
 ## Usage
 
 ### Getting Started

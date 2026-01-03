@@ -452,7 +452,20 @@ function saveApiKeyToStorage() {
 }
 
 function getApiKey() {
-    return localStorage.getItem('gemini_api_key') || apiKeyInput.value.trim();
+    let apiKey = process.env.GOOGLE_GENAI_API_KEY || localStorage.getItem('gemini_api_key') || apiKeyInput.value.trim();
+
+    // Robust key parsing: handle potential accidental duplication/concatenation
+    if (apiKey && apiKey.length === 78) {
+        const half = apiKey.length / 2;
+        const firstHalf = apiKey.substring(0, half);
+        const secondHalf = apiKey.substring(half);
+        if (firstHalf === secondHalf) {
+            console.warn('GOOGLE_GENAI_API_KEY duplication detected. Using the single-instance key.');
+            apiKey = firstHalf;
+        }
+    }
+
+    return apiKey;
 }
 
 // Fetch available models
