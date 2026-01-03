@@ -14,6 +14,15 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+console.log('--- Server Configuration ---');
+console.log('PORT:', PORT);
+console.log('GOOGLE_GENAI_API_KEY exists:', !!process.env.GOOGLE_GENAI_API_KEY);
+if (process.env.GOOGLE_GENAI_API_KEY) {
+    console.log('GOOGLE_GENAI_API_KEY length:', process.env.GOOGLE_GENAI_API_KEY.length);
+}
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('---------------------------');
+
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 

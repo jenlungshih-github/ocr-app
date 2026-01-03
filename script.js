@@ -106,6 +106,7 @@ async function checkServerConfig() {
     try {
         const response = await fetch('/api/config');
         const config = await response.json();
+        console.log("Server Config Response:", config);
 
         if (config.version) {
             if (versionDisplay) versionDisplay.textContent = `v${config.version}`;

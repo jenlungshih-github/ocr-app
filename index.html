@@ -301,24 +301,25 @@
                             </div>
                         </section>
 
-                        <!-- Error Section -->
-                        <section class="card error-section hidden" id="errorSection">
-                            <div class="error-content">
-                                <svg class="error-icon" viewBox="0 0 24 24" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                    <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                    <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <h3>Error</h3>
-                                <p id="errorMessage"></p>
-                                <button type="button" class="btn btn-secondary" id="dismissError">Dismiss</button>
-                            </div>
                         </section>
                     </div>
+
+                    <!-- Global Error Section -->
+                    <section class="card error-section hidden" id="errorSection" style="grid-column: 1 / -1;">
+                        <div class="error-content">
+                            <svg class="error-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <h3>Error</h3>
+                            <p id="errorMessage"></p>
+                            <button type="button" class="btn btn-secondary" id="dismissError">Dismiss</button>
+                        </div>
+                    </section>
                 </main>
 
                 <footer>
