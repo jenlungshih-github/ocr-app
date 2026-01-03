@@ -76,6 +76,7 @@ let currentImage = null;
 let currentImageData = null; // Base64 for Gemini
 let estimatedTokens = 0;
 let selectedModel = 'models/gemini-1.5-flash'; // Fallback
+let serverHasApiKey = false;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -114,6 +115,7 @@ async function checkServerConfig() {
 
         if (config.hasApiKey) {
             console.log("API Key found on server.");
+            serverHasApiKey = true;
             // Hide config section if key is on server
             apiConfigSection.style.display = 'none';
             // Show status
@@ -729,7 +731,7 @@ function clearImage() {
 async function extractText() {
     const apiKey = getApiKey();
 
-    if (!apiKey) {
+    if (!apiKey && !serverHasApiKey) {
         showError('Please enter your Gemini API key first');
         apiConfigSection.style.display = 'block';
         return;
@@ -789,7 +791,7 @@ async function handleAIGenerate() {
     const apiKey = getApiKey();
     const text = resultsContent.textContent;
 
-    if (!apiKey) {
+    if (!apiKey && !serverHasApiKey) {
         showError('Please enter your Gemini API key first');
         return;
     }
