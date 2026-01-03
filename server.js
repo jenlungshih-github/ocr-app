@@ -3,6 +3,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import fs from 'fs';
+
+const pkg = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url)));
+const VERSION = pkg.version;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,7 +27,8 @@ app.get('/api/config', (req, res) => {
     const apiKey = getCleanApiKey(process.env.GOOGLE_GENAI_API_KEY);
     res.json({
         hasApiKey: !!apiKey,
-        isProduction: process.env.NODE_ENV === 'production'
+        isProduction: process.env.NODE_ENV === 'production',
+        version: VERSION
     });
 });
 

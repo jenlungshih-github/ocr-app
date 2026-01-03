@@ -46,6 +46,7 @@ const dismissError = document.getElementById('dismissError');
 const apiConfigSection = document.getElementById('apiConfigSection');
 const uploadSection = document.getElementById('uploadSection');
 const apiStatus = document.getElementById('apiStatus');
+const versionDisplay = document.getElementById('versionDisplay');
 
 // Firebase UI Elements
 const configureFirebaseBtn = document.getElementById('configureFirebaseBtn');
@@ -105,6 +106,10 @@ async function checkServerConfig() {
     try {
         const response = await fetch('/api/config');
         const config = await response.json();
+
+        if (config.version) {
+            if (versionDisplay) versionDisplay.textContent = `v${config.version}`;
+        }
 
         if (config.hasApiKey) {
             console.log("API Key found on server.");
