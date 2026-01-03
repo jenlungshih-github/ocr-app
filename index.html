@@ -20,16 +20,6 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
 
-    <!-- Firebase SDK (Modular) -->
-    <script type="importmap">
-      {
-        "imports": {
-          "firebase/app": "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js",
-          "firebase/firestore": "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js",
-          "firebase/storage": "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js"
-        }
-      }
-    </script>
 </head>
 
 <body>
@@ -253,7 +243,7 @@
                                         </svg>
                                         Start New Scan
                                     </button>
-                                    <button type="button" class="btn btn-secondary btn-small" id="copyBtn">
+                                    <button type="button" class="btn btn-primary btn-small" id="copyBtn">
                                         <svg class="btn-icon-left" viewBox="0 0 24 24" fill="none"
                                             xmlns="http://www.w3.org/2000/svg">
                                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor"
@@ -264,9 +254,35 @@
                                         </svg>
                                         Copy
                                     </button>
+                                    <button type="button" class="btn btn-accent btn-small" id="aiGenBtn">
+                                        <svg class="btn-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path
+                                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                        </svg>
+                                        ✨ Generate AI Prompt
+                                    </button>
                                 </div>
                             </div>
                             <div class="results-content" id="resultsContent"></div>
+
+                            <!-- AI Output Container (Hidden by default) -->
+                            <div id="aiOutputSection" class="ai-output-container hidden">
+                                <div class="divider">
+                                    <span>AI GENERATED PROMPT</span>
+                                </div>
+                                <div class="ai-card">
+                                    <h3 id="aiTitle" class="ai-title"></h3>
+                                    <p id="aiDescription" class="ai-description"></p>
+                                    <div class="ai-prompt-box">
+                                        <label>Final Prompt</label>
+                                        <div id="aiPromptText" class="ai-prompt-text"></div>
+                                        <button id="copyAiPromptBtn" class="btn btn-secondary btn-small">Copy
+                                            Prompt</button>
+                                    </div>
+                                    <div id="aiTags" class="ai-tags"></div>
+                                </div>
+                            </div>
 
                             <!-- Loading Overlay -->
                             <div class="loading-wrapper hidden" id="loadingSection">

@@ -55,6 +55,13 @@ const historyList = document.getElementById('historyList');
 const historySearch = document.getElementById('historySearch');
 const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
 const historySidebar = document.getElementById('historySidebar');
+const aiGenBtn = document.getElementById('aiGenBtn');
+const aiOutputSection = document.getElementById('aiOutputSection');
+const aiTitle = document.getElementById('aiTitle');
+const aiDescription = document.getElementById('aiDescription');
+const aiPromptText = document.getElementById('aiPromptText');
+const aiTags = document.getElementById('aiTags');
+const copyAiPromptBtn = document.getElementById('copyAiPromptBtn');
 
 // Firebase State
 let db = null;
@@ -79,9 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Load API key from session storage
+// Load API key from local storage
 function loadApiKey() {
-    const savedKey = sessionStorage.getItem('gemini_api_key');
+    const savedKey = localStorage.getItem('gemini_api_key');
     if (savedKey) {
         apiKeyInput.value = savedKey;
         apiConfigSection.style.display = 'none';
@@ -143,6 +150,10 @@ function setupEventListeners() {
         toggleHistoryBtn.addEventListener('click', () => {
             historySidebar.classList.toggle('active');
         });
+
+        // AI Generation
+        aiGenBtn.addEventListener('click', handleAIGenerate);
+        copyAiPromptBtn.addEventListener('click', copyAiPrompt);
 
         console.log("Event listeners set up!");
     } catch (e) {
@@ -434,14 +445,14 @@ function saveApiKeyToStorage() {
         return;
     }
 
-    sessionStorage.setItem('gemini_api_key', key);
+    localStorage.setItem('gemini_api_key', key);
     apiConfigSection.style.display = 'none';
     showSuccess('API key saved successfully!');
     fetchModels();
 }
 
 function getApiKey() {
-    return sessionStorage.getItem('gemini_api_key') || apiKeyInput.value.trim();
+    return localStorage.getItem('gemini_api_key') || apiKeyInput.value.trim();
 }
 
 // Fetch available models
@@ -734,6 +745,129 @@ async function extractText() {
     } catch (error) {
         loadingSection.classList.add('hidden');
         showError(`Failed to extract text: ${error.message}`);
+    }
+}
+
+// AI GENERATION LOGIC
+async function handleAIGenerate() {
+    const apiKey = getApiKey();
+    const text = resultsContent.textContent;
+
+    if (!apiKey) {
+        showError('Please enter your Gemini API key first');
+        return;
+    }
+
+    if (!text || text === 'No text extracted') {
+        showError('No text found to generate a prompt from');
+        return;
+    }
+
+    // Show loading
+    loadingSection.classList.remove('hidden');
+    aiGenBtn.disabled = true;
+
+    try {
+        const systemInstruction = `
+            You are an expert prompt engineer for "Nanobana Pro" and other high-end image generation models.
+            Your task is to take extracted text (from an OCR scan) and transform it into a highly detailed, artistic, and creative image generation prompt.
+            
+            Strictly return a JSON object with the following fields:
+            - title: A creative title for the image in Traditional Chinese.
+            - description: A brief, artistic description of the scene in Traditional Chinese.
+            - prompt: A detailed English prompt for image generation.
+            - tags: An array of 5-8 relevant creative tags.
+
+            Analyze the tone, subject, and keywords of the text provided to inspire the scene.
+        `;
+
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${apiKey}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            parts: [
+                                {
+                                    text: `${systemInstruction}\n\nExtracted Text to analyze:\n${text}`
+                                }
+                            ]
+                        }
+                    ],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 2048,
+                        response_mime_type: "application/json"
+                    }
+                })
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || 'API request failed');
+        }
+
+        const data = await response.json();
+        const resultString = data.candidates[0]?.content?.parts[0]?.text || '{}';
+
+        // Parse JSON safely
+        let result;
+        try {
+            // Clean up potentially included markdown backticks
+            const jsonStr = resultString.replace(/```json/g, '').replace(/```/g, '').trim();
+            result = JSON.parse(jsonStr);
+        } catch (e) {
+            console.error("JSON parse failed", resultString);
+            throw new Error("Failed to parse AI response as JSON");
+        }
+
+        // Display results
+        aiTitle.textContent = result.title || 'Untitled';
+        aiDescription.textContent = result.description || '';
+        aiPromptText.textContent = result.prompt || '';
+
+        // Render tags
+        aiTags.innerHTML = '';
+        if (result.tags && Array.isArray(result.tags)) {
+            result.tags.forEach(tag => {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'ai-tag';
+                tagEl.textContent = tag;
+                aiTags.appendChild(tagEl);
+            });
+        }
+
+        // Show section
+        aiOutputSection.classList.remove('hidden');
+        aiOutputSection.scrollIntoView({ behavior: 'smooth' });
+
+        showSuccess('AI Prompt Generated!');
+
+    } catch (error) {
+        showError(`AI Generation failed: ${error.message}`);
+        console.error(error);
+    } finally {
+        loadingSection.classList.add('hidden');
+        aiGenBtn.disabled = false;
+    }
+}
+
+async function copyAiPrompt() {
+    const text = aiPromptText.textContent;
+    try {
+        await navigator.clipboard.writeText(text);
+        const originalText = copyAiPromptBtn.innerHTML;
+        copyAiPromptBtn.textContent = 'Copied!';
+        setTimeout(() => {
+            copyAiPromptBtn.innerHTML = originalText;
+        }, 2000);
+    } catch (err) {
+        showError('Failed to copy');
     }
 }
 

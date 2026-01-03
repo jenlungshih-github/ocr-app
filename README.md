@@ -1,6 +1,6 @@
 # Gemini Image OCR
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 A modern web application for extracting text from images using Google's Gemini AI, with Firebase integration for persistent history and intelligent duplicate detection.
@@ -30,14 +30,21 @@ A modern web application for extracting text from images using Google's Gemini A
 - **Google Gemini API**: AI-powered text extraction
 
 ### Development Tools
-- **http-server**: Local development server
+- **Vite**: Modern frontend build tool for fast development and production bundling
 - **Git**: Version control
+- **npm**: Package management
 
 ## Version
 
-**Current Version**: 1.0.0
+**Current Version**: 1.1.0
 
 ### Changelog
+
+#### v1.1.0 (2026-01-02)
+- Migrated to Vite for better build performance and Firebase App Hosting compatibility
+- Added `package.json` and `vite.config.js`
+- Standardized Firebase dependency management via npm
+- Updated documentation for new build process
 
 #### v1.0.0 (2025-12-31)
 - Initial release
@@ -64,52 +71,21 @@ A modern web application for extracting text from images using Google's Gemini A
    cd ocr-app
    ```
 
-2. **Configure Firebase**
+2. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Firebase**
    
-   Update the Firebase configuration in `script.js` (lines 163-170):
-   ```javascript
-   firebaseConfig = {
-       apiKey: "YOUR_FIREBASE_API_KEY",
-       authDomain: "YOUR_PROJECT.firebaseapp.com",
-       projectId: "YOUR_PROJECT_ID",
-       storageBucket: "YOUR_PROJECT.firebasestorage.app",
-       messagingSenderId: "YOUR_SENDER_ID",
-       appId: "YOUR_APP_ID"
-   };
-   ```
-
-3. **Set up Firebase Security Rules**
-
-   **Firestore Rules** (`firestore.rules`):
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /scans/{scanId} {
-         allow read, write: if request.auth != null;
-       }
-     }
-   }
-   ```
-
-   **Storage Rules** (`storage.rules`):
-   ```
-   rules_version = '2';
-   service firebase.storage {
-     match /b/{bucket}/o {
-       match /scans/{allPaths=**} {
-         allow read, write: if request.auth != null;
-       }
-     }
-   }
-   ```
+   The application will prompt for Firebase configuration on first load, or you can update the fallback config in `script.js` (lines 177-184).
 
 4. **Run locally**
    ```bash
-   npx -y http-server . -p 8080 -c-1
+   npm run dev
    ```
    
-   Access at `http://localhost:8080`
+   Access at `http://localhost:3000` (or the port specified by Vite)
 
 ## Firebase Hosting Deployment
 
@@ -174,9 +150,13 @@ The app uses hardcoded Firebase config with localStorage fallback. To customize:
 
 ```
 ocr-app/
-├── index.html          # Main HTML structure
-├── script.js           # Core application logic (822 lines)
+├── dist/                # Production build output
+├── node_modules/       # Project dependencies
+├── index.html          # Main HTML entry point
+├── script.js           # Core application logic
 ├── style.css           # Styling and animations
+├── package.json        # NPM dependencies and scripts
+├── vite.config.js      # Vite configuration
 ├── firebase.json       # Firebase hosting configuration
 ├── .firebaserc         # Firebase project settings
 ├── firestore.rules     # Firestore security rules
