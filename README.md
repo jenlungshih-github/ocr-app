@@ -1,6 +1,6 @@
 # Gemini Image OCR
 
-![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 A modern web application for extracting text from images using Google's Gemini AI, with Firebase integration for persistent history and intelligent duplicate detection.
@@ -36,9 +36,15 @@ A modern web application for extracting text from images using Google's Gemini A
 
 ## Version
 
-**Current Version**: 1.2.0
+**Current Version**: 1.2.1
 
 ### Changelog
+
+#### v1.2.1 (2026-01-03)
+- Fixed broken layout by restoring the missing `.hidden` utility class
+- Resolved "API key not found" error by correctly identifying server-side configuration
+- Improved error visibility by moving the error section to a global layout position
+- Added diagnostic logging for easier troubleshooting
 
 #### v1.2.0 (2026-01-03)
 - Implemented Express.js backend for secure API key management and App Hosting compatibility
