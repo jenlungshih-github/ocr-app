@@ -75,7 +75,7 @@ let scansUnsubscribe = null;
 let currentImage = null;
 let currentImageData = null; // Base64 for Gemini
 let estimatedTokens = 0;
-let selectedModel = 'models/gemini-1.5-flash'; // Fallback
+let selectedModel = 'gemini-1.5-flash'; // Fallback
 let serverHasApiKey = false;
 
 // Initialize
