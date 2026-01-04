@@ -536,8 +536,8 @@ async function fetchModels() {
                     flashModels.find(m => m.name.includes('1.5-flash-latest')) ||
                     flashModels[0];
 
-                selectedModel = preferred.name;
-                console.log('Selected model:', selectedModel);
+                selectedModel = preferred.name.split('/').pop();
+                console.log('Selected model ID:', selectedModel);
             }
         }
     } catch (e) {

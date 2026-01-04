@@ -63,6 +63,7 @@ function getCleanApiKey(key) {
 app.post('/api/extract', async (req, res) => {
     console.log('[Extract Request] Processing new extraction request...');
     const { imageData, mimeType, model = 'gemini-1.5-flash' } = req.body;
+    const cleanModel = model.replace(/^models\//, '');
     const apiKey = getCleanApiKey(process.env.GOOGLE_GENAI_API_KEY);
 
     if (!apiKey) {
@@ -76,7 +77,7 @@ app.post('/api/extract', async (req, res) => {
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const modelInstance = genAI.getGenerativeModel({ model: model });
+        const modelInstance = genAI.getGenerativeModel({ model: cleanModel });
 
         const result = await modelInstance.generateContent([
             {
@@ -103,6 +104,7 @@ app.post('/api/extract', async (req, res) => {
 // AI Generation Endpoint
 app.post('/api/generate-prompt', async (req, res) => {
     const { text, model = 'gemini-1.5-flash' } = req.body;
+    const cleanModel = model.replace(/^models\//, '');
     const apiKey = getCleanApiKey(process.env.GOOGLE_GENAI_API_KEY);
 
     if (!apiKey) {
@@ -112,7 +114,7 @@ app.post('/api/generate-prompt', async (req, res) => {
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const modelInstance = genAI.getGenerativeModel({
-            model: model,
+            model: cleanModel,
             generationConfig: { responseMimeType: 'application/json' }
         });
 

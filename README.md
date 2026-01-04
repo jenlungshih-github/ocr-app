@@ -36,9 +36,14 @@ A modern web application for extracting text from images using Google's Gemini A
 
 ## Version
 
-**Current Version**: 1.2.2
+**Current Version**: 1.2.3
 
 ### Changelog
+
+#### v1.2.3 (2026-01-04)
+- Fixed 404 error when extracting text by handling model identifier prefixes correctly
+- Incremented version to v1.2.3 for all components
+- Added server-side guard to strip `models/` prefix from Gemini model strings
 
 #### v1.2.2 (2026-01-04)
 - Fixed API key fetch issue in development mode by adding Vite proxy configuration
