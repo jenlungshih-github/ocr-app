@@ -108,8 +108,7 @@ async function checkServerConfig() {
     try {
         const response = await fetch('/api/config');
         const config = await response.json();
-        console.log("Server Config Response:", config);
-        console.log("Server Config Response:", config);
+        console.log("[DEBUG] Server Config Response:", config);
 
         if (config.version) {
             if (versionDisplay) versionDisplay.textContent = `v${config.version}`;
@@ -542,7 +541,8 @@ async function fetchModels() {
             }
         }
     } catch (e) {
-        console.error('Failed to fetch models', e);
+        console.error('Failed to fetch models, using default:', e);
+        selectedModel = 'gemini-1.5-flash';
     }
 }
 
